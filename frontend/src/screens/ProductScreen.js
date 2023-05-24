@@ -7,7 +7,6 @@ import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
 import Badge from 'react-bootstrap/Badge';
-import Button from 'react-bootstrap/Button';
 import Rating from '../components/Rating';
 import { Helmet } from 'react-helmet-async';
 import LoadingBox from '../components/LoadingBox';
@@ -17,6 +16,10 @@ import { Store } from '../Store';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import { toast } from 'react-toastify';
 import { API_URL } from '../const';
+import http from '../libs/axios';
+import { Box, Button, Typography } from '@mui/material';
+import Price from '../components/price';
+import Image from '../components/image';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -47,8 +50,7 @@ function ProductScreen() {
   const [selectedImage, setSelectedImage] = useState('');
 
   const navigate = useNavigate();
-  const params = useParams();
-  const { slug } = params;
+  const { slug } = useParams();
 
   const [{ loading, error, product, loadingCreateReview }, dispatch] =
     useReducer(reducer, {
@@ -93,8 +95,8 @@ function ProductScreen() {
       return;
     }
     try {
-      const { data } = await axios.post(
-        `/api/products/${product._id}/reviews`,
+      const { data } = await http.post(
+        `/products/${product._id}/reviews`,
         { rating, comment, name: userInfo.name },
         {
           headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -123,64 +125,31 @@ function ProductScreen() {
   ) : error ? (
     <MessageBox variant="danger">{error}</MessageBox>
   ) : (
-    <div>
+    <Box mt={3}>
       <Row>
         <Col md={6}>
-          <img
-            className="img-large"
-            src={selectedImage || product.image}
-            alt={product.name}
-          ></img>
+        <Image
+          sx={{ maxHeight: 400, objectFit: 'contain' }}
+          src={product.image}
+          className="card-img-top"
+          alt={product.name}
+        />
         </Col>
-        <Col md={3}>
-          <ListGroup variant="flush">
-            <ListGroup.Item>
-              <Helmet>
-                <title>{product.name}</title>
-              </Helmet>
-              <h1>{product.name}</h1>
-            </ListGroup.Item>
-            <ListGroup.Item>
-              <Rating
-                rating={product.rating}
-                numReviews={product.numReviews}
-              ></Rating>
-            </ListGroup.Item>
-            <ListGroup.Item>Pirce : ${product.price}</ListGroup.Item>
-            <ListGroup.Item>
-              <Row xs={1} md={2} className="g-2">
-                {[product.image, ...product.images].map((x) => (
-                  <Col key={x}>
-                    <Card>
-                      <Button
-                        className="thumbnail"
-                        type="button"
-                        variant="light"
-                        onClick={() => setSelectedImage(x)}
-                      >
-                        <Card.Img variant="top" src={x} alt="product" />
-                      </Button>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </ListGroup.Item>
-            <ListGroup.Item>
-              Description:
-              <p>{product.description}</p>
-            </ListGroup.Item>
-          </ListGroup>
-        </Col>
-        <Col md={3}>
+        <Col md={6}>
+          <Typography variant="h1" fontSize={32} mb={1}>
+            {product.name}
+          </Typography>
+
+          <Price fontSize={25} value={product.price} mb={1} />
+
+          <Typography mb={2}>
+            {product.description ||
+              "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s "}
+          </Typography>
+
           <Card>
             <Card.Body>
               <ListGroup variant="flush">
-                <ListGroup.Item>
-                  <Row>
-                    <Col>Price:</Col>
-                    <Col>${product.price}</Col>
-                  </Row>
-                </ListGroup.Item>
                 <ListGroup.Item>
                   <Row>
                     <Col>Status:</Col>
@@ -197,7 +166,7 @@ function ProductScreen() {
                 {product.countInStock > 0 && (
                   <ListGroup.Item>
                     <div className="d-grid">
-                      <Button onClick={addToCartHandler} variant="primary">
+                      <Button variant="contained" onClick={addToCartHandler}>
                         Add to Cart
                       </Button>
                     </div>
@@ -258,7 +227,11 @@ function ProductScreen() {
               </FloatingLabel>
 
               <div className="mb-3">
-                <Button disabled={loadingCreateReview} type="submit">
+                <Button
+                  variant="contained"
+                  disabled={loadingCreateReview}
+                  type="submit"
+                >
                   Submit
                 </Button>
                 {loadingCreateReview && <LoadingBox></LoadingBox>}
@@ -275,7 +248,7 @@ function ProductScreen() {
           )}
         </div>
       </div>
-    </div>
+    </Box>
   );
 }
 export default ProductScreen;

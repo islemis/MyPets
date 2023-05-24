@@ -2,6 +2,18 @@ import express from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import Product from '../models/productModel.js';
 import { isAuth, isAdmin } from '../utils.js';
+import multer from 'multer';
+
+const storage = multer.diskStorage({
+  destination: './uploads/',
+  filename: function (req, file, cb) {
+    //req.body is empty...
+    //How could I get the new_file_name property sent from client here?
+    cb(null, `${Date.now()}.${file.mimetype.split('/')[1]}`);
+  },
+});
+
+const upload = multer({ storage });
 
 const productRouter = express.Router();
 
@@ -14,21 +26,24 @@ productRouter.post(
   '/',
   isAuth,
   isAdmin,
+  upload.single('image'),
   expressAsyncHandler(async (req, res) => {
+    const { name, description, price, countInStock, category } = req.body;
+
     const newProduct = new Product({
-      name: 'sample name ' + Date.now(),
+      name,
       slug: 'sample-name-' + Date.now(),
-      image: '/images/p1.jpg',
-      price: 0,
-      category: 'sample category',
+      image: req.file.filename,
+      price,
+      category,
       brand: 'sample brand',
-      countInStock: 0,
+      countInStock,
       rating: 0,
       numReviews: 0,
-      description: 'sample description',
+      description,
     });
     const product = await newProduct.save();
-    res.send({ message: 'Product Created', product });
+    res.send(product);
   })
 );
 

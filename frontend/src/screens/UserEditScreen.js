@@ -1,7 +1,5 @@
-import axios from 'axios';
 import React, { useContext, useEffect, useReducer, useState } from 'react';
 import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -10,6 +8,8 @@ import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
+import http from '../libs/axios';
+import { Button } from '@mui/material';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -51,7 +51,7 @@ export default function UserEditScreen() {
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/users/${userId}`, {
+        const { data } = await http.get(`/users/${userId}`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
         setName(data.name);
@@ -72,8 +72,8 @@ export default function UserEditScreen() {
     e.preventDefault();
     try {
       dispatch({ type: 'UPDATE_REQUEST' });
-      await axios.put(
-        `/api/users/${userId}`,
+      await http.put(
+        `/users/${userId}`,
         { _id: userId, name, email, isAdmin },
         {
           headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -130,7 +130,7 @@ export default function UserEditScreen() {
           />
 
           <div className="mb-3">
-            <Button disabled={loadingUpdate} type="submit">
+            <Button variant='contained' disabled={loadingUpdate} type="submit">
               Update
             </Button>
             {loadingUpdate && <LoadingBox></LoadingBox>}

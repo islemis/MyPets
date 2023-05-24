@@ -1,13 +1,11 @@
-import { useEffect, useReducer, useState } from 'react';
-import axios from 'axios';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+import { useEffect, useReducer } from 'react';
 import Product from '../components/Product';
 import { Helmet } from 'react-helmet-async';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
-import { API_URL } from '../const';
-// import data from '../data';
+import Slider from '../components/slider';
+import { Box, Grid, Typography } from '@mui/material';
+import http from '../libs/axios';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -33,13 +31,11 @@ function HomeScreen() {
     const fetchData = async () => {
       dispatch({ type: 'FETCH_REQUEST' });
       try {
-        const result = await axios.get(`${API_URL}products`);
+        const result = await http.get('/products');
         dispatch({ type: 'FETCH_SUCCESS', payload: result.data });
       } catch (err) {
         dispatch({ type: 'FETCH_FAIL', payload: err.message });
       }
-
-      // setProducts(result.data);
     };
     fetchData();
   }, []);
@@ -48,22 +44,26 @@ function HomeScreen() {
       <Helmet>
         <title>Amazona</title>
       </Helmet>
-      <h1>Featured Products</h1>
-      <div className="products">
-        {loading ? (
-          <LoadingBox />
-        ) : error ? (
-          <MessageBox variant="danger">{error}</MessageBox>
-        ) : (
-          <Row>
+
+      <Slider />
+      {loading ? (
+        <LoadingBox />
+      ) : error ? (
+        <MessageBox variant="danger">{error}</MessageBox>
+      ) : (
+        <Box my={3}>
+          <Typography variant="h2" textAlign="center" mb={2}>
+            Product features
+          </Typography>
+          <Grid container spacing={4}>
             {products.map((product) => (
-              <Col key={product.slug} sm={6} md={4} lg={3} className="mb-3">
+              <Grid key={product._id} item lg={3}>
                 <Product product={product}></Product>
-              </Col>
+              </Grid>
             ))}
-          </Row>
-        )}
-      </div>
+          </Grid>
+        </Box>
+      )}
     </div>
   );
 }
